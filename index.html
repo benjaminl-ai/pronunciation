@@ -108,6 +108,16 @@
             }
         };
     }
+async function listModelsOnStart() {
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${MY_SECRET_KEY}`);
+            const data = await res.json();
+            console.log("--- 你的 API Key 可用模型清單 ---", data);
+        } catch (e) {
+            console.error("無法取得模型清單", e);
+        }
+    }
+    listModelsOnStart();
 </script>
 </body>
 </html>
