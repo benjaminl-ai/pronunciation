@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro AI English Coach</title>
+    <title>AI English Coach - AI英文教練</title>
     <style>
         :root {
             --panel-color: #c0c0c0;
             --display-bg: #1a1a1a;
             --led-orange: #ff9d00;
             --plastic-black: #333;
+            --led-green: #00ff00;
         }
 
         body {
@@ -19,17 +20,18 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Courier New', Courier, "Microsoft JhengHei", monospace;
         }
 
         /* 錄音機主體 */
         .recorder-case {
             background: var(--panel-color);
             border: 4px solid #888;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 25px;
-            width: 350px;
+            width: 380px;
             box-shadow: inset -5px -5px 10px #888, inset 5px 5px 10px #fff, 0 20px 40px rgba(0,0,0,0.5);
+            text-align: center;
         }
 
         /* 模擬顯示屏 */
@@ -39,110 +41,146 @@
             padding: 15px;
             margin-bottom: 20px;
             border: 3px solid #555;
-            box-shadow: inset 0 0 10px #000;
+            box-shadow: inset 0 0 15px #000;
         }
 
         h1 {
             color: var(--led-orange);
-            font-size: 1.2rem;
+            font-size: 1rem;
             margin: 0 0 10px 0;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-shadow: 0 0 5px var(--led-orange);
         }
 
         #status {
-            color: #00ff00;
-            font-size: 0.8rem;
+            color: var(--led-green);
+            font-size: 0.9rem;
             height: 1.2rem;
             margin: 5px 0;
+            font-weight: bold;
         }
 
-        /* 模擬 VU Meter (錶靶) */
+        /* 模擬 VU Meter (音量錶靶) */
         .vu-meter {
             display: flex;
-            gap: 2px;
-            height: 10px;
+            gap: 3px;
+            height: 12px;
             margin-top: 10px;
+            justify-content: center;
         }
         .vu-bar {
-            flex: 1;
+            width: 8px;
             background: #222;
+            border-radius: 1px;
         }
         .recording .vu-bar {
             animation: vu-jump 0.2s infinite alternate;
         }
-        .vu-bar:nth-child(n+8) { background: #550000; }
+        .vu-bar:nth-child(n+8) { background: #440000; }
         .recording .vu-bar:nth-child(n+8) { background: #ff0000; }
 
         @keyframes vu-jump {
-            from { opacity: 0.3; }
-            to { opacity: 1; }
+            from { opacity: 0.2; transform: scaleY(0.5); }
+            to { opacity: 1; transform: scaleY(1.2); }
+        }
+
+        /* 輸入框標籤 */
+        .input-label {
+            font-size: 0.7rem;
+            color: #444;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
 
         /* 輸入框 */
         input[type="text"] {
             width: 100%;
             background: #2a2a2a;
-            border: 1px solid #555;
+            border: 2px solid #555;
             color: #fff;
-            padding: 10px;
+            padding: 12px;
             box-sizing: border-box;
             font-family: inherit;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            border-radius: 4px;
         }
 
-        /* 語速調校 (像收音機頻率掣) */
+        /* 語速調校 */
         .speed-control {
-            font-size: 0.7rem;
-            color: #444;
-            margin-bottom: 15px;
+            font-size: 0.75rem;
+            color: #333;
+            margin-bottom: 20px;
             text-align: left;
+            border-top: 1px solid #aaa;
+            padding-top: 10px;
         }
         input[type="range"] {
             width: 100%;
             accent-color: var(--plastic-black);
+            margin-top: 8px;
+            cursor: pointer;
         }
 
         /* 機械按鈕組 */
         .tape-btns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 15px;
         }
 
         button {
-            padding: 15px;
+            padding: 15px 5px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
             font-family: inherit;
             cursor: pointer;
-            box-shadow: 0 4px #666, 0 5px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 5px #666, 0 8px 15px rgba(0,0,0,0.4);
             transition: all 0.1s;
-            text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         button:active {
-            transform: translateY(3px);
+            transform: translateY(4px);
             box-shadow: 0 1px #444;
         }
 
-        .btn-play { background: #ddd; color: #333; } /* 聽示範 */
+        .btn-label-en { font-size: 0.8rem; }
+        .btn-label-zh { font-size: 0.7rem; opacity: 0.8; }
+
+        .btn-play { background: #eee; color: #1a1a1a; } /* 聽示範 */
         .btn-rec { background: #cc0000; color: white; } /* 錄音 */
 
         /* AI 反饋區域 */
         #feedback {
-            margin-top: 20px;
-            background: #e0e0d0; /* 像舊紙張的顏色 */
-            padding: 15px;
-            border: 1px solid #999;
-            color: #333;
-            font-size: 0.9rem;
+            margin-top: 25px;
+            background: #fdfdf0; /* 舊紙張色 */
+            padding: 18px;
+            border: 1px solid #bbb;
+            color: #222;
+            font-size: 0.95rem;
             display: none;
             text-align: left;
-            line-height: 1.4;
-            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+            line-height: 1.6;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
+            border-radius: 2px;
+            position: relative;
+        }
+        #feedback::before {
+            content: "TEACHER'S NOTE 老師評語";
+            display: block;
+            font-size: 0.6rem;
+            color: #888;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
 
     </style>
@@ -151,8 +189,9 @@
 
 <div class="recorder-case">
     <div class="display-panel">
-        <h1>AI TAPE RECORDER</h1>
-        <div id="status">IDLE</div>
+        <h1>AI VOCAL TRAINER / 發音訓練機</h1>
+        <div id="status">READY / 準備就緒</div>
+        
         <div class="vu-meter" id="vuMeter">
             <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
             <div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div><div class="vu-bar"></div>
@@ -160,25 +199,32 @@
         </div>
     </div>
 
-    <input type="text" id="wordInput" placeholder="ENTER TEXT HERE...">
+    <div class="input-label">TARGET TEXT / 目標文字：</div>
+    <input type="text" id="wordInput" placeholder="TYPE WORDS HERE...">
 
     <div class="speed-control">
-        PITCH / SPEED: <span id="speedValue">1.0</span>x
+        PITCH-SPEED / 語速調校: <span id="speedValue" style="color:#cc0000; font-weight:bold;">1.0</span>x
         <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1">
     </div>
 
     <div class="tape-btns">
-        <button class="btn-play" onclick="listenStandard()">▶ PLAY DEMO</button>
-        <button class="btn-rec" id="recordBtn" onclick="toggleRecording()">● REC / STOP</button>
+        <button class="btn-play" onclick="listenStandard()">
+            <span class="btn-label-en">▶ PLAY DEMO</span>
+            <span class="btn-label-zh">聽取示範</span>
+        </button>
+        <button class="btn-rec" id="recordBtn" onclick="toggleRecording()">
+            <span class="btn-label-en" id="recEn">● REC / STOP</span>
+            <span class="btn-label-zh" id="recZh">開始或停止錄音</span>
+        </button>
     </div>
 
     <div id="feedback"></div>
 </div>
 
 <script>
-    // --- 核心 logic 保持不變 ---
-    const part1 = "AIzaSyB9ygTu0i8nMRMY7"; 
-    const part2 = "qvug73oakMZYj7_F6E"; 
+    // --- 核心 logic ---
+    const part1 = "AIzaSyBi9clRvxy7szWBT"; 
+    const part2 = "g9E8ch1TGmiCmTFLRM"; 
     const MY_SECRET_KEY = part1 + part2;
 
     let mediaRecorder;
@@ -186,25 +232,38 @@
     let isRecording = false;
     let audioStream = null;
 
+    // 更新語速顯示
     document.getElementById('speedRange').oninput = function() {
         document.getElementById('speedValue').innerText = this.value;
     };
 
+    // 1. 播放示範
     function listenStandard() {
         const text = document.getElementById('wordInput').value;
-        if (!text) return;
+        if (!text) {
+            document.getElementById('status').innerText = "EMPTY TEXT / 請輸入文字";
+            return;
+        }
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
         utterance.rate = document.getElementById('speedRange').value;
         window.speechSynthesis.speak(utterance);
-        document.getElementById('status').innerText = "PLAYING...";
-        utterance.onend = () => document.getElementById('status').innerText = "IDLE";
+        
+        document.getElementById('status').innerText = "PLAYING / 播放中...";
+        utterance.onend = () => document.getElementById('status').innerText = "IDLE / 準備就緒";
     }
 
+    // 2. 錄音切換
     async function toggleRecording() {
         const status = document.getElementById('status');
         const container = document.querySelector('.recorder-case');
+        const word = document.getElementById('wordInput').value;
+
+        if (!word) {
+            status.innerText = "INPUT FIRST / 請先輸入單字";
+            return;
+        }
 
         if (!isRecording) {
             try {
@@ -214,37 +273,45 @@
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = analyzeSpeech;
                 mediaRecorder.start();
+                
                 isRecording = true;
-                status.innerText = "RECORDING...";
+                status.innerText = "RECORDING / 錄音中...";
                 container.classList.add('recording');
                 document.getElementById('feedback').style.display = "none";
-            } catch (err) { alert("MIC ERROR"); }
+            } catch (err) { 
+                status.innerText = "MIC ERROR / 麥克風錯誤";
+            }
         } else {
             mediaRecorder.stop();
             if (audioStream) audioStream.getTracks().forEach(track => track.stop());
             isRecording = false;
-            status.innerText = "PROCESSING...";
+            status.innerText = "ANALYZING / AI 分析中...";
             container.classList.remove('recording');
         }
     }
 
+    // 3. AI 分析 (依照要求更新 Prompt)
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value;
+        const status = document.getElementById('status');
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
+        
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
             const base64Audio = reader.result.split(',')[1];
+            
+            // 嚴格老師版 Prompt 更新
             const payload = {
                 contents: [{
                     parts: [
-                        { text: `你是一位嚴格但親切的英文老師。學生的目標是：「${word}」。
-                        請仔細聽錄音並：
+                        { text: `你是一位嚴格但親切的英文老師。學生的目標單字/句子是：「${word}」。
+                        請細心聽這段錄音，並執行以下步驟：
                         1. 檢查學生是否有讀錯、漏讀或發音不標準的地方。
-                        2. 精確指出哪個單字讀錯（例如：把 "Apple" 讀成 "Abble"）。
-                        3. 用初中程度中文簡短解釋錯處:：錯在哪裡？正確應該怎麼讀？
-                        4. 請誠實指出並給予具體建議，不要只說好話。
-                        4. 總長不超過10 句話, 每句話分行表達。` },
+                        2. 精確指出每個讀錯的單字（例如：你把 "Apple" 讀成了 "Abble"）
+                        3. 用最簡單的方法指出正確應該怎麼讀
+                        4. 一個單字的評語用一行表達。
+                        5. 回應保持簡短，總長度不超過 10句話。` },
                         { inline_data: { mime_type: "audio/webm", data: base64Audio } }
                     ]
                 }]
@@ -258,13 +325,19 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                const feedbackText = data.candidates[0].content.parts[0].text;
-                const fbDiv = document.getElementById('feedback');
-                fbDiv.innerHTML = "<strong>ANALYSIS:</strong><br>" + feedbackText;
-                fbDiv.style.display = "block";
-                document.getElementById('status').innerText = "DONE";
+                
+                if (data.candidates && data.candidates[0].content) {
+                    const feedbackText = data.candidates[0].content.parts[0].text;
+                    const fbDiv = document.getElementById('feedback');
+                    fbDiv.innerHTML = feedbackText.replace(/\n/g, '<br>');
+                    fbDiv.style.display = "block";
+                    status.innerText = "COMPLETED / 分析完畢";
+                } else {
+                    throw new Error("No data");
+                }
             } catch (error) {
-                document.getElementById('status').innerText = "ERROR";
+                status.innerText = "API ERROR / 分析出錯";
+                console.error(error);
             }
         };
     }
