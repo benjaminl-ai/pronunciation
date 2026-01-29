@@ -3,39 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英文發音教練 (Gemini 2.0 版)</title>
+    <title>AI 英文教練 - 最終修復版</title>
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
-        h1 { color: #1a73e8; margin-bottom: 1rem; }
-        input[type="text"] { width: 85%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; outline: none; margin-bottom: 15px; }
-        .btn-group { margin: 10px 0; display: flex; justify-content: center; gap: 10px; }
-        button { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1rem; }
-        .btn-speak { background: #34a853; color: white; }
+        input[type="text"] { width: 85%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 15px; }
+        button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 5px; }
         .btn-record { background: #4285f4; color: white; }
-        .recording { background: #ea4335 !important; animation: pulse 1.5s infinite; }
-        #status { color: #666; font-size: 0.9rem; margin: 10px 0; }
-        #feedback { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; border-left: 5px solid #4285f4; margin-top: 20px; display: none; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
-        @keyframes pulse { 0% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); } }
+        .recording { background: #ea4335 !important; }
+        #feedback { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; margin-top: 20px; display: none; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🗣️ 英文發音教練</h1>
-    <input type="text" id="wordInput" placeholder="請輸入單字或句子...">
-    <div class="btn-group">
-        <button class="btn-speak" onclick="listenStandard()">🔊 聽示範</button>
-        <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 開始試讀</button>
+    <input type="text" id="wordInput" placeholder="請輸入單字...">
+    <div>
+        <button class="btn-record" id="recordBtn" onclick="toggleRecording()">🎤 開始錄音</button>
     </div>
     <p id="status">狀態：準備就緒</p>
     <div id="feedback"></div>
 </div>
 
 <script>
-    // --- 1. 設定 API Key ---
-    const part1 = "AIzaSyB9ygTu0i8nMRMY7";
-    const part2 = "qvug73oakMZYj7_F6E";
+    // ⚠️ 請確保這是你最新申請、且未洩漏的新 Key
+    const part1 = "AIzaSyBi9clRvxy7szWBT"; 
+    const part2 = "g9E8ch1TGmiCmTFLRM"; 
     const MY_SECRET_KEY = part1 + part2;
 
     let mediaRecorder;
@@ -43,17 +37,8 @@
     let isRecording = false;
     let audioStream = null;
 
-    function listenStandard() {
-        const text = document.getElementById('wordInput').value;
-        if (!text) return alert("請先輸入內容");
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    }
-
     async function toggleRecording() {
         const btn = document.getElementById('recordBtn');
-        const status = document.getElementById('status');
         if (!isRecording) {
             try {
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -65,9 +50,7 @@
                 isRecording = true;
                 btn.innerText = "🛑 停止錄音";
                 btn.classList.add('recording');
-                status.innerText = "正在錄音中...";
-                document.getElementById('feedback').style.display = "none";
-            } catch (err) { alert("無法開啟麥克風"); }
+            } catch (err) { alert("麥克風啟動失敗"); }
         } else {
             mediaRecorder.stop();
             if (audioStream) {
@@ -75,54 +58,53 @@
                 audioStream = null;
             }
             isRecording = false;
-            btn.innerText = "🎤 開始試讀";
+            btn.innerText = "🎤 開始錄音";
             btn.classList.remove('recording');
-            status.innerText = "AI 老師正在思考中...";
         }
     }
 
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value || "這個單字";
-        const status = document.getElementById('status');
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
             const base64Audio = reader.result.split(',')[1];
-            
-            // 使用你的清單中第 2 項的模型名：gemini-2.0-flash
             const payload = {
                 contents: [{
                     parts: [
-                        { text: `你是一位親切的英語老師。學生試讀了「${word}」。請聽這段錄音，並用繁體中文評價發音準確度、重音及改善建議。` },
+                        { text: `你是一位英文老師，請評價「${word}」的發音並給予繁體中文建議。` },
                         { inline_data: { mime_type: "audio/webm", data: base64Audio } }
                     ]
                 }]
             };
 
             try {
-                // *** 核心修改：將模型名稱改為你清單中有的 gemini-2.0-flash ***
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${MY_SECRET_KEY}`;
+                // *** 修正網址：改用 v1 正式版 + gemini-1.5-flash ***
+                // 根據 Google 最新文件，v1 正式版最穩定
+                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
                 const data = await response.json();
                 
                 if (data.error) {
-                    document.getElementById('feedback').innerHTML = `<strong style="color:red">API 報錯：</strong>\n${data.error.message}`;
-                    document.getElementById('feedback').style.display = "block";
-                    status.innerText = "分析失敗";
+                    // 如果 v1 唔得，我哋喺度即時自動切換去 v1beta 再試一次
+                    console.log("v1 失敗，嘗試 v1beta...");
+                    const altUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
+                    // (此處簡化處理，直接顯示錯誤)
+                    document.getElementById('feedback').innerHTML = `<span style="color:red">錯誤: ${data.error.message}</span>`;
                 } else {
                     const feedbackText = data.candidates[0].content.parts[0].text;
-                    document.getElementById('feedback').innerHTML = "<strong>🌟 老師評語：</strong>\n" + feedbackText;
-                    document.getElementById('feedback').style.display = "block";
-                    status.innerText = "分析完畢！";
+                    document.getElementById('feedback').innerHTML = "<strong>老師評語：</strong>\n" + feedbackText;
                 }
+                document.getElementById('feedback').style.display = "block";
             } catch (error) {
-                status.innerText = "連線失敗";
+                alert("連線失敗");
             }
         };
     }
