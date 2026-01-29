@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英文發音小老師</title>
+    <title>AI 英文發音教練</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 2rem; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
@@ -29,7 +29,7 @@
 <body>
 
 <div class="container">
-    <h1>👨‍🏫 AI 英文發音小老師</h1>
+    <h1>👨‍🏫 AI 英文發音教練</h1>
     
     <input type="text" id="wordInput" placeholder="輸入單字或句子...">
     
@@ -39,11 +39,11 @@
     </div>
 
     <div class="btn-group">
-        <button class="btn-speak" onclick="listenStandard()">🔊 聽點樣讀 (標準聲)</button>
-        <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 我試吓讀 (錄音)</button>
+        <button class="btn-speak" onclick="listenStandard()">🔊 聆聽 </button>
+        <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 試讀 (錄音)</button>
     </div>
 
-    <p id="status">準備好喇，輸入單字先！</p>
+    <p id="status">先輸入單字或句子！</p>
     <div id="feedback"></div>
 </div>
 
@@ -72,7 +72,7 @@
         
         // 嘗試搵出最自然的英文聲音
         const voices = window.speechSynthesis.getVoices();
-        const englishVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha')) || voices[0];
+        const englishVoice = voices.find(v => v.name.includes('Google UK English') || v.name.includes('Samantha')) || voices[0];
         if (englishVoice) utterance.voice = englishVoice;
         
         utterance.lang = 'en-US';
@@ -96,9 +96,9 @@
                 
                 mediaRecorder.start();
                 isRecording = true;
-                btn.innerText = "🛑 停 (我讀完喇)";
+                btn.innerText = "🛑 停止錄音";
                 btn.classList.add('recording');
-                status.innerText = "🔴 聽緊你讀嘢，請講...";
+                status.innerText = "🔴 請錄音...";
                 document.getElementById('feedback').style.display = "none";
             } catch (err) { alert("開唔到麥克風"); }
         } else {
