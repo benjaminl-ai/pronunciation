@@ -294,6 +294,7 @@
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value;
         const status = document.getElementById('status');
+        const fbDiv = document.getElementById('feedback');
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
         
