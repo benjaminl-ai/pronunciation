@@ -95,10 +95,7 @@ const MY_SECRET_KEY = part1 + part2;
                 contents: [{
                     parts: [
                         { text: `你是一位親切的英文老師。學生讀了「${word}」這個字。請分析錄音內容，給予發音評價與具體的改善建議（如嘴型或重音）。請用繁體中文回答。` },
-                        inline_data: { 
-                            mime_type: "audio/mp3", // 或者試下 "audio/wav"
-                            data: base64Audio 
-                            }
+                        inline_data: {mime_type: "audio/mp3", data: base64Audio}
                     ]
                 }]
             };
