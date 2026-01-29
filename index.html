@@ -123,18 +123,19 @@
             const base64Audio = reader.result.split(',')[1];
             
             const payload = {
-                contents: [{
-                    parts: [
-                        { text: `你是一位教小朋友英文的老師。學生剛讀了「${word}」。請聽錄音並給予極簡短的回應。
-                        規則：
-                        1. 只用繁體中文。
-                        2. 評語要非常簡單，讓初中以下水平的小朋友聽得懂。
-                        3. 總長度不超過 3 句話。
-                        4. 先說讀得對不對，再給一個最簡單的進步小撇步。` },
-                        { inline_data: { mime_type: "audio/webm", data: base64Audio } }
-                    ]
-                }]
-            };
+    contents: [{
+        parts: [
+            { text: `你是一位嚴格但親切的英文老師。學生的目標單字/句子是：「${word}」。
+            請細心聽這段錄音，並執行以下步驟：
+            1. 檢查學生是否有讀錯、漏讀或發音不標準的地方。
+            2. **精確指出**哪一個單字讀錯了（例如：你把 "Apple" 讀成了 "Abble"）。
+            3. 用最簡單的初中程度中文解釋：錯在哪裡？正確應該怎麼讀？
+            4. 如果真的讀得很爛，請誠實指出並給予具體建議，不要只說好話。
+            5. 回應保持簡短，不超過 4 句話。` },
+            { inline_data: { mime_type: "audio/webm", data: base64Audio } }
+        ]
+    }]
+};
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${MY_SECRET_KEY}`;
