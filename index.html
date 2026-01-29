@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英文發音練習</title>
+    <title>AI 英文發音教練</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
-        h1 { color: #1a73e8; margin-bottom: 1.5rem; }
-        input[type="text"] { width: 80%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; outline: none; transition: 0.3s; }
-        input[type="text"]:focus { border-color: #1a73e8; }
+        h1 { color: #1a73e8; }
+        input[type="text"] { width: 80%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; margin-bottom: 10px; }
         .btn-group { margin: 20px 0; display: flex; justify-content: center; gap: 10px; }
-        button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .btn-speak { background: #34a853; color: white; }
         .btn-record { background: #4285f4; color: white; }
         .recording { background: #ea4335 !important; animation: pulse 1.5s infinite; }
-        #status { color: #666; font-size: 0.9rem; margin: 10px 0; }
+        #status { color: #666; font-size: 0.9rem; }
         #feedback { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; border-left: 4px solid #4285f4; margin-top: 20px; display: none; line-height: 1.6; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
     </style>
@@ -24,137 +23,111 @@
 
 <div class="container">
     <h1>🗣️ 英文發音教練</h1>
-    <input type="text" id="wordInput" placeholder="請輸入單字或句子...">
-    
+    <input type="text" id="wordInput" placeholder="請輸入單字...">
     <div class="btn-group">
         <button class="btn-speak" onclick="listenStandard()">🔊 聽示範</button>
         <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 開始試讀</button>
     </div>
-
     <p id="status">狀態：準備就緒</p>
-    <div id="feedback" id="feedbackBox"></div>
+    <div id="feedback"></div>
 </div>
 
 <script>
-// 1. API Key 拼合
-const part1 = "AIzaSyBi9clRvxy7szWBT";
-const part2 = "g9E8ch1TGmiCmTFLRM";
-const MY_SECRET_KEY = part1 + part2;
+    // --- 1. 設定 API Key ---
+    const part1 = "AIzaSyBi9clRvxy7szWBT"; // 填入你第一半 Key
+    const part2 = "g9E8ch1TGmiCmTFLRM";    // 填入你第二半 Key
+    const MY_SECRET_KEY = part1 + part2;
 
-let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
-let audioStream = null; // 用嚟儲存麥克風串流
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let audioStream = null;
 
-// 聽標準發音
-function listenStandard() {
-    const text = document.getElementById('wordInput').value;
-    if (!text) return alert("請先輸入內容");
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    window.speechSynthesis.speak(utterance);
-}
-
-// 錄音控制
-async function toggleRecording() {
-    const btn = document.getElementById('recordBtn');
-    const status = document.getElementById('status');
-
-    if (!isRecording) {
-        try {
-            // 獲取麥克風權限並儲存 stream
-            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(audioStream);
-            audioChunks = [];
-            
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = analyzeSpeech;
-            
-            mediaRecorder.start();
-            isRecording = true;
-            btn.innerText = "🛑 停止錄音";
-            btn.classList.add('recording');
-            status.innerText = "正在錄音中...";
-        } catch (err) {
-            alert("無法開啟麥克風，請檢查權限設定。");
-        }
-    } else {
-        // 停止錄音
-        mediaRecorder.stop();
-        
-        // 【核心修改】錄音完畢後，立即關閉麥克風硬件存取
-        if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
-        }
-
-        isRecording = false;
-        btn.innerText = "🎤 開始試讀";
-        btn.classList.remove('recording');
-        status.innerText = "AI 正在思考中...";
+    // --- 2. 聽示範 ---
+    function listenStandard() {
+        const text = document.getElementById('wordInput').value;
+        if (!text) return alert("請先輸入單字");
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
     }
-}
 
-// 呼叫 Gemini
-async function analyzeSpeech() {
-    const word = document.getElementById('wordInput').value;
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    const reader = new FileReader();
-    
-    reader.readAsDataURL(audioBlob);
-    reader.onloadend = async () => {
-        const base64Audio = reader.result.split(',')[1];
-        
-        const payload = {
-            contents: [{
-                parts: [
-                    { text: `你是一位親切的英文老師。學生讀了「${word}」這個字。請分析錄音內容，給予發音評價與具體的改善建議。請用繁體中文回答。` },
-                    { inline_data: { mime_type: "audio/webm", data: base64Audio } }
-                ]
-            }]
+    // --- 3. 錄音控制 (錄完會自動關麥克風) ---
+    async function toggleRecording() {
+        const btn = document.getElementById('recordBtn');
+        const status = document.getElementById('status');
+
+        if (!isRecording) {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(audioStream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = analyzeSpeech;
+                mediaRecorder.start();
+                
+                isRecording = true;
+                btn.innerText = "🛑 停止錄音";
+                btn.classList.add('recording');
+                status.innerText = "正在錄音中...";
+            } catch (err) {
+                alert("請允許麥克風權限");
+            }
+        } else {
+            mediaRecorder.stop();
+            // 真正關閉麥克風硬件
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+            isRecording = false;
+            btn.innerText = "🎤 開始試讀";
+            btn.classList.remove('recording');
+            status.innerText = "AI 老師思考中...";
+        }
+    }
+
+    // --- 4. 叫 Gemini 分析 ---
+    async function analyzeSpeech() {
+        const word = document.getElementById('wordInput').value;
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+            const base64Audio = reader.result.split(',')[1];
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: `你是一位專業英文老師。學生讀了「${word}」。請聽錄音，評價發音是否準確，並給予繁體中文改善建議。` },
+                        { inline_data: { mime_type: "audio/webm", data: base64Audio } }
+                    ]
+                }]
+            };
+
+            try {
+                // 使用 v1beta 網址，通常對 Flash 支援較好
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const feedbackText = data.candidates[0].content.parts[0].text;
+                const fbDiv = document.getElementById('feedback');
+                fbDiv.innerHTML = "<strong>老師評價：</strong><br>" + feedbackText.replace(/\n/g, '<br>');
+                fbDiv.style.display = "block";
+                document.getElementById('status').innerText = "分析完畢！";
+            } catch (error) {
+                alert("錯誤: " + error.message);
+                document.getElementById('status').innerText = "出錯了";
+            }
         };
-
-        try {
-            // 試用 v1 正式版路徑
-            const url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + MY_SECRET_KEY;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await response.json();
-
-            if (data.error) throw new Error(data.error.message);
-
-            const feedbackText = data.candidates[0].content.parts[0].text;
-            const fbDiv = document.getElementById('feedback');
-            fbDiv.innerHTML = "<strong>老師評價：</strong><br>" + feedbackText.replace(/\n/g, '<br>');
-            fbDiv.style.display = "block";
-            document.getElementById('status').innerText = "分析完畢！";
-        } catch (error) {
-            console.error("詳細錯誤:", error);
-            alert("發生錯誤: " + error.message);
-            document.getElementById('status').innerText = "發生錯誤";
-        }
-    };
-}
-
-// 【Debug 用】列出這條 Key 可用的所有模型
-async function listMyModels() {
-    try {
-        const response = await fetch("https://generativelanguage.googleapis.com/v1/models?key=" + MY_SECRET_KEY);
-        const data = await response.json();
-        console.log("--- 可用模型列表 ---");
-        console.log(data);
-    } catch (e) {
-        console.error("無法獲取模型列表", e);
     }
-}
-
-// 網頁一開就執行 Debug
-listMyModels();
 </script>
 
 </body>
