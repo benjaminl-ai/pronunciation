@@ -81,7 +81,7 @@ const MY_SECRET_KEY = part1 + part2;
         }
     }
 
-    // 3. 呼叫 Gemini
+// 3. 呼叫 Gemini
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value;
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -95,13 +95,14 @@ const MY_SECRET_KEY = part1 + part2;
                 contents: [{
                     parts: [
                         { text: `你是一位親切的英文老師。學生讀了「${word}」這個字。請分析錄音內容，給予發音評價與具體的改善建議（如嘴型或重音）。請用繁體中文回答。` },
-                        inline_data: {mime_type: "audio/mp3", data: base64Audio}
+                        { inline_data: { mime_type: "audio/webm", data: base64Audio } } // 👈 呢度加返對 {} 就行
                     ]
                 }]
             };
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
+                // 確保呢度用返「反引號」包裹 URL
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -110,6 +111,12 @@ const MY_SECRET_KEY = part1 + part2;
                 });
                 
                 const data = await response.json();
+                
+                // 檢查 API 是否回傳錯誤
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
                 const feedbackText = data.candidates[0].content.parts[0].text;
                 
                 const fbDiv = document.getElementById('feedback');
@@ -117,7 +124,8 @@ const MY_SECRET_KEY = part1 + part2;
                 fbDiv.style.display = "block";
                 document.getElementById('status').innerText = "分析完畢！";
             } catch (error) {
-                alert("API 呼叫失敗，請檢查 Key 是否正確或額度已滿。");
+                console.error("詳細錯誤:", error);
+                alert("發生錯誤: " + error.message);
                 document.getElementById('status').innerText = "發生錯誤";
             }
         };
