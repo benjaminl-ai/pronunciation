@@ -326,14 +326,20 @@
                 });
                 const data = await response.json();
                 
-                if (data.candidates && data.candidates[0].content) {
+                if (data.error) {
+                    console.error("Google API Error:", data.error);
+                    fbDiv.innerHTML = `<strong style="color:red">Google 報錯：</strong> ${data.error.message}`;
+                    fbDiv.style.display = "block";
+                    status.innerText = "❌ 分析失敗";
+                } else if (data.candidates && data.candidates[0].content) {
                     const feedbackText = data.candidates[0].content.parts[0].text;
-                    const fbDiv = document.getElementById('feedback');
                     fbDiv.innerHTML = feedbackText.replace(/\n/g, '<br>');
                     fbDiv.style.display = "block";
-                    status.innerText = "COMPLETED / 分析完畢";
+                    status.innerText = "✅ 分析完成";
                 } else {
-                    throw new Error("No data");
+                    // 這裡就是你遇到 "No data" 的地方，通常代表 Google 回傳了空結果
+                    console.log("Full Data:", data);
+                    status.innerText = "❌ 讀取失敗，請再試一次";
                 }
             } catch (error) {
                 status.innerText = "API ERROR / 分析出錯";
