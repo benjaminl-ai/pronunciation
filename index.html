@@ -124,6 +124,14 @@ const MY_SECRET_KEY = part1 + part2;
                 document.getElementById('status').innerText = "發生錯誤";
             }
         };
+
+    async function checkModels() {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${MY_SECRET_KEY}`);
+    const data = await res.json();
+    console.log("你可用的模型列表：", data);
+}
+// 喺網頁載入後執行
+checkModels();
     }
 </script>
 
