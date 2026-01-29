@@ -3,53 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英文發音教練</title>
+    <title>AI 英文發音教練 - Voice Memo 風格</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        h1 { color: #1a73e8; font-size: 1.5rem; }
-        input[type="text"] { width: 85%; padding: 15px; border: 2px solid #dfe1e5; border-radius: 15px; font-size: 1.2rem; margin-bottom: 10px; outline: none; }
+        /* SF Pro Display 字體是 Apple 產品的默認字體 */
+        body { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background: #f2f2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #1c1c1e; }
         
-        /* 語速調校樣式 */
-        .speed-control { margin: 10px 0; font-size: 0.9rem; color: #5f6368; }
-        #speedRange { width: 70%; vertical-align: middle; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); width: 90%; max-width: 375px; text-align: center; }
+        
+        h1 { font-size: 24px; font-weight: 700; color: #000; margin-bottom: 20px; }
+        
+        input[type="text"] { width: calc(100% - 30px); padding: 12px 15px; border: 1px solid #d1d1d6; border-radius: 10px; font-size: 16px; margin-bottom: 15px; outline: none; -webkit-appearance: none; }
+        input[type="text"]:focus { border-color: #007aff; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        button { padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: 0.2s; }
-        .btn-speak { background: #34a853; color: white; }
-        .btn-record { background: #4285f4; color: white; }
-        .recording { background: #ea4335 !important; animation: blink 1s infinite; }
+        /* 語速調節 */
+        .speed-control { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 15px; color: #8e8e93; }
+        .speed-control span { margin: 0 8px; font-weight: 600; color: #1c1c1e; }
+        #speedRange { width: 120px; -webkit-appearance: none; height: 3px; background: #d1d1d6; border-radius: 2px; outline: none; }
+        #speedRange::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #007aff; cursor: pointer; border: 0; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
         
-        #status { margin: 15px 0; font-weight: bold; color: #1a73e8; min-height: 1.2rem; }
-        #feedback { background: #f1f3f4; padding: 15px; border-radius: 15px; text-align: left; display: none; line-height: 1.5; font-size: 1rem; color: #3c4043; }
+        .main-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         
-        @keyframes blink { 50% { opacity: 0.7; } }
+        /* 聽示範按鈕 */
+        .btn-listen-demo { background: #e5e5ea; color: #1c1c1e; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; transition: background 0.2s ease; }
+        .btn-listen-demo:active { background: #d1d1d6; }
+
+        /* 錄音按鈕 - Voice Memo 核心元素 */
+        #recordBtn { width: 80px; height: 80px; border-radius: 50%; background: #ff3b30; color: white; font-size: 14px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; transition: transform 0.2s ease, background 0.2s ease; box-shadow: 0 3px 10px rgba(255, 59, 48, 0.4); }
+        #recordBtn:active { transform: scale(0.95); background: #cc3129; }
+        #recordBtn.recording { background: #a2241e; animation: pulse-record 1.5s infinite alternate; }
+        
+        @keyframes pulse-record {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        #status { font-size: 16px; color: #007aff; margin-top: 25px; min-height: 20px; font-weight: 600; }
+        
+        #feedback { background: #e5e5ea; padding: 15px; border-radius: 15px; text-align: left; margin-top: 20px; display: none; line-height: 1.6; font-size: 15px; color: #1c1c1e; white-space: pre-wrap; word-wrap: break-word; }
+        #feedback strong { color: #000; font-weight: 700; }
+
+        /* 錄音波形動畫 (簡化版) */
+        .waveform { display: flex; justify-content: center; align-items: flex-end; height: 40px; margin-top: 15px; }
+        .bar { width: 4px; height: 5px; background: #007aff; margin: 0 1.5px; border-radius: 2px; animation: waveform-animate 0.8s ease-in-out infinite alternate; }
+        .bar:nth-child(2) { animation-delay: -0.2s; }
+        .bar:nth-child(3) { animation-delay: -0.4s; }
+        .bar:nth-child(4) { animation-delay: -0.6s; }
+        .bar:nth-child(5) { animation-delay: -0.8s; }
+        .bar:nth-child(6) { animation-delay: -1s; }
+        @keyframes waveform-animate {
+            0% { height: 5px; }
+            50% { height: 30px; }
+            100% { height: 5px; }
+        }
+        .waveform.hidden { display: none; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>👨‍🏫 AI 英文發音教練</h1>
+    <h1>AI 發音教練</h1>
     
-    <input type="text" id="wordInput" placeholder="輸入單字或句子...">
+    <input type="text" id="wordInput" placeholder="輸入你想練習的單字或句子">
     
     <div class="speed-control">
         🐢 語速：<input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1"> 🚀
-        <br><span id="speedValue">1.0</span>x
+        <span id="speedValue">1.0</span>x
     </div>
 
-    <div class="btn-group">
-        <button class="btn-speak" onclick="listenStandard()">🔊 聆聽 </button>
-        <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 試讀 (錄音)</button>
+    <div class="main-controls">
+        <button class="btn-listen-demo" onclick="listenStandard()">🔊 聽示範 (標準讀法)</button>
+        <button id="recordBtn" onclick="toggleRecording()">
+            <span id="recordText">點擊錄音</span>
+            <div class="waveform hidden" id="recordingWaveform">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+        </button>
     </div>
 
-    <p id="status">先輸入單字或句子！</p>
+    <p id="status">準備好了，請輸入並點擊錄音</p>
     <div id="feedback"></div>
 </div>
 
 <script>
-    const part1 = "AIzaSyB9ygTu0i8nMRMY7"; 
-    const part2 = "qvug73oakMZYj7_F6E"; 
+    const part1 = "AIzaSyBi9clRvxy7szWBT"; 
+    const part2 = "g9E8ch1TGmiCmTFLRM"; 
     const MY_SECRET_KEY = part1 + part2;
 
     let mediaRecorder;
@@ -57,34 +97,48 @@
     let isRecording = false;
     let audioStream = null;
 
-    // 更新顯示語速數值
+    // 語速顯示更新
     document.getElementById('speedRange').oninput = function() {
         document.getElementById('speedValue').innerText = this.value;
     };
 
-    // 1. 聽標準發音 (Natural Reader 聲音)
+    // 聽標準發音 (Natural Reader 聲音)
     function listenStandard() {
         const text = document.getElementById('wordInput').value;
-        if (!text) return alert("請先輸入單字");
+        if (!text) {
+            document.getElementById('status').innerText = "請先輸入單字或句子！";
+            return;
+        }
         
-        window.speechSynthesis.cancel(); // 先停止之前的聲音
+        window.speechSynthesis.cancel(); 
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // 嘗試搵出最自然的英文聲音
         const voices = window.speechSynthesis.getVoices();
-        const englishVoice = voices.find(v => v.name.includes('Google UK English') || v.name.includes('Samantha')) || voices[0];
+        const englishVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google') || v.name.includes('Samantha')) || voices.find(v => v.lang === 'en-US') || voices[0];
         if (englishVoice) utterance.voice = englishVoice;
         
         utterance.lang = 'en-US';
-        utterance.rate = document.getElementById('speedRange').value; // 套用語速
+        utterance.rate = parseFloat(document.getElementById('speedRange').value); 
         window.speechSynthesis.speak(utterance);
-        document.getElementById('status').innerText = "播放示範中...";
+        
+        document.getElementById('status').innerText = "🔊 播放示範中...";
+        utterance.onend = () => {
+            document.getElementById('status').innerText = "準備好了，請輸入並點擊錄音";
+        };
     }
 
-    // 2. 錄音控制
+    // 錄音控制
     async function toggleRecording() {
         const btn = document.getElementById('recordBtn');
         const status = document.getElementById('status');
+        const recordText = document.getElementById('recordText');
+        const waveform = document.getElementById('recordingWaveform');
+        const wordInput = document.getElementById('wordInput').value;
+
+        if (!wordInput) {
+            status.innerText = "請先輸入你想練習的單字或句子！";
+            return;
+        }
 
         if (!isRecording) {
             try {
@@ -96,25 +150,31 @@
                 
                 mediaRecorder.start();
                 isRecording = true;
-                btn.innerText = "🛑 停止錄音";
                 btn.classList.add('recording');
-                status.innerText = "🔴 請錄音...";
+                recordText.style.display = 'none';
+                waveform.classList.remove('hidden');
+                status.innerText = "🔴 錄音中，請讀出你想練習的內容...";
                 document.getElementById('feedback').style.display = "none";
-            } catch (err) { alert("開唔到麥克風"); }
+            } catch (err) { 
+                status.innerText = "❌ 無法開啟麥克風，請檢查權限。";
+            }
         } else {
             mediaRecorder.stop();
             if (audioStream) audioStream.getTracks().forEach(track => track.stop());
             isRecording = false;
-            btn.innerText = "🎤 我試吓讀 (錄音)";
             btn.classList.remove('recording');
-            status.innerText = "⏳ AI 老師諗緊 (請等幾秒)...";
+            recordText.style.display = 'block';
+            waveform.classList.add('hidden');
+            status.innerText = "⏳ AI 老師正在仔細聆聽...";
         }
     }
 
-    // 3. AI 分析 (簡短版)
+    // AI 分析 (嚴格老師版 Prompt)
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value || "這個內容";
         const status = document.getElementById('status');
+        const fbDiv = document.getElementById('feedback');
+        
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
         
@@ -123,19 +183,20 @@
             const base64Audio = reader.result.split(',')[1];
             
             const payload = {
-    contents: [{
-        parts: [
-            { text: `你是一位嚴格但親切的英文老師。學生的目標單字/句子是：「${word}」。
-            請細心聽這段錄音，並執行以下步驟：
-            1. 檢查學生是否有讀錯、漏讀或發音不標準的地方。
-            2. **精確指出**哪一個單字讀錯了（例如：你把 "Apple" 讀成了 "Abble"）。
-            3. 用最簡單的初中程度中文解釋：錯在哪裡？正確應該怎麼讀？
-            4. 如果真的讀得很爛，請誠實指出並給予具體建議，不要只說好話。
-            5. 回應保持簡短，不超過 4 句話。` },
-            { inline_data: { mime_type: "audio/webm", data: base64Audio } }
-        ]
-    }]
-};
+                contents: [{
+                    parts: [
+                        { text: `你是一位嚴格的英文老師。學生的目標單字/句子是：「${word}」。
+                        請細心聽這段錄音，並執行以下步驟：
+                        1. 檢查學生是否有讀錯、漏讀或發音不標準的地方。
+                        2. 精確指出哪一個單字讀錯了（例如：你把 "Apple" 讀成了 "Abble"）。
+                        3. 用最簡單的初中程度中文解釋：錯在哪裡？正確應該怎麼讀？
+                        4. 如果真的讀得很差，請誠實指出並給予具體建議，不要只說好話。
+                        5. 回應保持簡短，總長度不超過 10 句話。
+                        6. 每完成一句說話請用下一行。` },
+                        { inline_data: { mime_type: "audio/webm", data: base64Audio } }
+                    ]
+                }]
+            };
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${MY_SECRET_KEY}`;
@@ -148,23 +209,42 @@
                 const data = await response.json();
                 
                 if (data.error) {
-                    status.innerText = "❌ 發生咗啲錯誤";
-                    console.error(data.error);
-                } else {
+                    fbDiv.innerHTML = `<strong style="color:#ff3b30">❌ API 錯誤：</strong>\n${data.error.message}`;
+                    fbDiv.style.display = "block";
+                    status.innerText = "❌ 分析失敗";
+                    console.error("API Error:", data.error);
+                } else if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     const feedbackText = data.candidates[0].content.parts[0].text;
-                    const fbDiv = document.getElementById('feedback');
-                    fbDiv.innerHTML = "<strong>老師評語：</strong><br>" + feedbackText;
+                    fbDiv.innerHTML = "<strong>🌟 老師評語：</strong>\n" + feedbackText;
                     fbDiv.style.display = "block";
                     status.innerText = "✅ 分析完成！";
+                } else {
+                    fbDiv.innerHTML = `<strong style="color:#ff3b30">❌ AI 未能提供評語。</strong>`;
+                    fbDiv.style.display = "block";
+                    status.innerText = "❌ 分析失敗";
                 }
             } catch (error) {
+                fbDiv.innerHTML = `<strong style="color:#ff3b30">❌ 連線失敗，請檢查網絡或 VPN。</strong>`;
+                fbDiv.style.display = "block";
                 status.innerText = "❌ 連線失敗";
+                console.error("Fetch Error:", error);
             }
         };
     }
+    
+    // 載入聲音清單 (確保 listenStandard 可以找到聲音)
+    window.speechSynthesis.onvoiceschanged = () => {
+        // 可以在這裡初始化一次，確保獲取到聲音
+        // console.log("Voices loaded.");
+    };
 
-    // 載入聲音清單 (部分瀏覽器需要)
-    window.speechSynthesis.onvoiceschanged = () => {};
+    // 頁面加載時檢查 SpeechSynthesis
+    if ('speechSynthesis' in window) {
+        // Voices are loaded asynchronously, so wait for the 'voiceschanged' event.
+    } else {
+        document.getElementById('status').innerText = "您的瀏覽器不支持語音合成功能。";
+    }
+
 </script>
 
 </body>
