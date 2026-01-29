@@ -3,41 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英文發音練習</title>
+    <title>AI 英文發音教練 (Gemini 2.0 版)</title>
     <style>
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
         h1 { color: #1a73e8; margin-bottom: 1rem; }
         input[type="text"] { width: 85%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1rem; outline: none; margin-bottom: 15px; }
-        .btn-group { margin: 10px 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .btn-group { margin: 10px 0; display: flex; justify-content: center; gap: 10px; }
         button { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 1rem; }
         .btn-speak { background: #34a853; color: white; }
         .btn-record { background: #4285f4; color: white; }
         .recording { background: #ea4335 !important; animation: pulse 1.5s infinite; }
-        #status { color: #666; font-size: 0.9rem; margin: 10px 0; font-weight: 500; }
+        #status { color: #666; font-size: 0.9rem; margin: 10px 0; }
         #feedback { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: left; border-left: 5px solid #4285f4; margin-top: 20px; display: none; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🗣️ 英文發音教練</h1>
-    <p style="color: #666; margin-top: -10px;">請確保 VPN 已連接 (美國/台灣)</p>
-    
     <input type="text" id="wordInput" placeholder="請輸入單字或句子...">
-    
     <div class="btn-group">
         <button class="btn-speak" onclick="listenStandard()">🔊 聽示範</button>
         <button id="recordBtn" class="btn-record" onclick="toggleRecording()">🎤 開始試讀</button>
     </div>
-
     <p id="status">狀態：準備就緒</p>
     <div id="feedback"></div>
 </div>
 
 <script>
-    // --- 1. 設定 API Key (已根據你之前提供的部分拼合) ---
+    // --- 1. 設定 API Key ---
     const part1 = "AIzaSyBi9clRvxy7szWBT";
     const part2 = "g9E8ch1TGmiCmTFLRM";
     const MY_SECRET_KEY = part1 + part2;
@@ -47,7 +43,6 @@
     let isRecording = false;
     let audioStream = null;
 
-    // 聽標準發音
     function listenStandard() {
         const text = document.getElementById('wordInput').value;
         if (!text) return alert("請先輸入內容");
@@ -56,32 +51,25 @@
         window.speechSynthesis.speak(utterance);
     }
 
-    // 錄音控制
     async function toggleRecording() {
         const btn = document.getElementById('recordBtn');
         const status = document.getElementById('status');
-
         if (!isRecording) {
             try {
                 audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(audioStream);
                 audioChunks = [];
-                
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = analyzeSpeech;
-                
                 mediaRecorder.start();
                 isRecording = true;
                 btn.innerText = "🛑 停止錄音";
                 btn.classList.add('recording');
                 status.innerText = "正在錄音中...";
                 document.getElementById('feedback').style.display = "none";
-            } catch (err) {
-                alert("無法開啟麥克風，請檢查權限。");
-            }
+            } catch (err) { alert("無法開啟麥克風"); }
         } else {
             mediaRecorder.stop();
-            // 立即釋放麥克風權限，關閉紅點
             if (audioStream) {
                 audioStream.getTracks().forEach(track => track.stop());
                 audioStream = null;
@@ -93,79 +81,51 @@
         }
     }
 
-    // 呼叫 Gemini 進行分析
     async function analyzeSpeech() {
         const word = document.getElementById('wordInput').value || "這個單字";
         const status = document.getElementById('status');
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const reader = new FileReader();
-        
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
             const base64Audio = reader.result.split(',')[1];
             
-            // 構建傳送給 Gemini 的資料
+            // 使用你的清單中第 2 項的模型名：gemini-2.0-flash
             const payload = {
                 contents: [{
                     parts: [
-                        { text: `你是一位親切且專業的英語老師。學生剛才試讀了「${word}」。請聽這段錄音，並從以下三方面給予具體的繁體中文建議：1. 發音準確度 2. 重音位置 3. 如何改善嘴型或發音技巧。如果讀得很好，請給予熱情的鼓勵！` },
+                        { text: `你是一位親切的英語老師。學生試讀了「${word}」。請聽這段錄音，並用繁體中文評價發音準確度、重音及改善建議。` },
                         { inline_data: { mime_type: "audio/webm", data: base64Audio } }
                     ]
                 }]
             };
 
             try {
-                // 這裡嘗試使用 v1beta，因為 Flash 模型在 Beta 版本的相容性通常較高
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_SECRET_KEY}`;
+                // *** 核心修改：將模型名稱改為你清單中有的 gemini-2.0-flash ***
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${MY_SECRET_KEY}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
                 const data = await response.json();
                 
                 if (data.error) {
-                    // 如果還是 404，顯示詳細錯誤讓我知道原因
-                    const errorDetail = `錯誤碼: ${data.error.code}\n原因: ${data.error.message}`;
-                    document.getElementById('feedback').innerHTML = `<strong style="color:red">API 報錯：</strong>\n${errorDetail}`;
+                    document.getElementById('feedback').innerHTML = `<strong style="color:red">API 報錯：</strong>\n${data.error.message}`;
                     document.getElementById('feedback').style.display = "block";
                     status.innerText = "分析失敗";
-                    return;
-                }
-
-                if (data.candidates && data.candidates[0].content) {
-                    const feedbackText = data.candidates[0].content.parts[0].text;
-                    const fbDiv = document.getElementById('feedback');
-                    fbDiv.innerHTML = "<strong>🌟 老師評語：</strong>\n" + feedbackText;
-                    fbDiv.style.display = "block";
-                    status.innerText = "分析完畢！";
                 } else {
-                    throw new Error("Gemini 沒有回傳預期的內容。");
+                    const feedbackText = data.candidates[0].content.parts[0].text;
+                    document.getElementById('feedback').innerHTML = "<strong>🌟 老師評語：</strong>\n" + feedbackText;
+                    document.getElementById('feedback').style.display = "block";
+                    status.innerText = "分析完畢！";
                 }
-                
             } catch (error) {
-                console.error("Fetch Error:", error);
-                document.getElementById('feedback').innerText = "連線發生問題：" + error.message;
-                document.getElementById('feedback').style.display = "block";
-                status.innerText = "發生錯誤";
+                status.innerText = "連線失敗";
             }
         };
     }
-
-    // Debug: 開網頁時先檢查一次可用模型列表
-    async function listModelsOnStart() {
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${MY_SECRET_KEY}`);
-            const data = await res.json();
-            console.log("--- 你的 API Key 可用模型清單 ---", data);
-        } catch (e) {
-            console.error("無法取得模型清單", e);
-        }
-    }
-    listModelsOnStart();
 </script>
-
 </body>
 </html>
