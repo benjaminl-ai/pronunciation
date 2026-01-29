@@ -102,7 +102,7 @@
 
             try {
                 // *** 核心修改：將模型名稱改為你清單中有的 gemini-2.0-flash ***
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${MY_SECRET_KEY}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${MY_SECRET_KEY}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
