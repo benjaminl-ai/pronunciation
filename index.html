@@ -185,6 +185,10 @@
             box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
             border-radius: 2px;
             position: relative;
+
+            max-height: 250px;    /* 設定最大高度，超過就會變捲動 */
+            overflow-y: auto;     /* 開啟垂直捲動條 */
+            border-bottom: 3px solid #ccc; /* 加厚底部邊框，暗示仲有得落 */
         }
         #feedback::before {
             content: "TEACHER'S NOTE 老師評語";
