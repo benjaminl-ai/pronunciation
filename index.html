@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI English Coach - AI英文教練</title>
+    <title>AI PRONUNICIATION TRAINER</title>
     <style>
         :root {
             --panel-color: #c0c0c0;
@@ -97,15 +97,26 @@
         /* 輸入框 */
         input[type="text"] {
             width: 100%;
-            background: #2a2a2a;
-            border: 2px solid #555;
-            color: #fff;
-            padding: 12px;
+            background: #ffffff;
+            border: 4px solid var(--led--orange);
+            color: #000;
+            padding: 18px;
             box-sizing: border-box;
             font-family: inherit;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 157, 0, 0.3);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            background: #fff;
+            border-color: var(--led-green); /* 點擊時變綠色，代表「準備輸入」 */
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* 強化發光感 */
+            transform: scale(1.02); /* 微微放大，增加互動感 */
         }
 
         /* 語速調校 */
@@ -189,7 +200,7 @@
 
 <div class="recorder-case">
     <div class="display-panel">
-        <h1>AI VOCAL TRAINER / 發音訓練機</h1>
+        <h1>AI PRONUNICIATION TRAINER / 發音訓練機</h1>
         <div id="status">READY / 準備就緒</div>
         
         <div class="vu-meter" id="vuMeter">
