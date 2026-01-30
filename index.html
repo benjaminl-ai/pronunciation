@@ -95,7 +95,7 @@
         }
 
         /* 輸入框 */
-        input[type="text"] {
+        textarea{
             width: 100%;
             background: #ffffff;
             border: 4px solid var(--led--orange);
@@ -104,15 +104,17 @@
             box-sizing: border-box;
             font-family: inherit;
             margin-bottom: 25px;
-            font-size: 1.5rem;
+            font-size: 1rem;
             font-weight: bold;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(255, 157, 0, 0.3);
             outline: none;
+            resize: none;
+            min-height: 80px
             transition: all 0.3s ease;
         }
 
-        input[type="text"]:focus {
+        textarea:focus {
             background: #fff;
             border-color: var(--led-green); /* 點擊時變綠色，代表「準備輸入」 */
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* 強化發光感 */
@@ -211,7 +213,7 @@
     </div>
 
     <div class="input-label">TARGET TEXT / 目標文字：</div>
-    <input type="text" id="wordInput" placeholder="TYPE HERE...輸入單字/句子...">
+    <textarea id="wordInput" placeholder="TYPE HERE...輸入單字/句子..."></textarea>
 
     <div class="speed-control">
         PITCH-SPEED / 語速調校: <span id="speedValue" style="color:#cc0000; font-weight:bold;">1.0</span>x
